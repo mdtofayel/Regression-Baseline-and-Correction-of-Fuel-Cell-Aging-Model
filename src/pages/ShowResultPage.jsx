@@ -571,4 +571,5 @@ export default function ShowResultPage() {
       </div>
     </div>
   );
+  
 }
