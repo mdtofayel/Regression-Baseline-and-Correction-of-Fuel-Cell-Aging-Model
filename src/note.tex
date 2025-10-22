@@ -1,0 +1,428 @@
+\chapter{Machine Learning Model Integration and Execution Framework}
+\label{chap:ml_framework}
+
+Modern machine learning research requires not only the careful design of algorithms but also the development of reliable experimental infrastructures.  
+The growing variety and intricate nature of contemporary time series datasets, especially in energy systems, biological observation, and financial forecasting necessitate frameworks that are resilient, modular, and flexible across several datasets. Conventional analysis pipelines are frequently improvised or customized for specific tasks, hindering reproducibility, generalization, and equitable model comparison. 
+
+This chapter presents a comprehensive experimentation methodology tailored for time series regression and predicting tasks to tackle these problems. The solution integrates three environments—Python for machine learning, Java Spring Boot for backend orchestration, and React.js for frontend interaction into a cohesive complete pipeline. It facilitates dataset upload, preparation, model execution, evaluation of results, and visualization inside a singular reproducible workflow. The architecture is inherently modular: each layer functions autonomously while contributing to a cohesive, traceable process.
+\section{Problem Statement and Motivation}
+The prediction of fuel cell aging poses several methodological obstacles.
+The datasets are multivariate, high volume, and often noisy, with variables spanning different scales and containing occasional gaps.  
+Conventional methodologies generally depend on singular datasets, irregular preprocessing protocols, or arbitrary train/test divisions, rendering results challenging to replicate or compare.  Moreover, whereas baseline regression models like linear or polynomial fits are readable and reflect prolonged decline, they do not accommodate rapid change and stochastic fluctuations. In contrast, more adaptable models like LSTMs or ensemble learners can capture local dynamics, although frequently compromise on interpretability and generalizability. This fragmentation results in a research gap: the lack of a cohesive, reproducible approach for systematically evaluating models across various fuel cell aging datasets.
+
+\section{Framework Solution}
+The present dissertation presents a modular, three levels structure to tackle these difficulties, which incorporates:
+\begin{enumerate}
+    \item A \textbf{backend layer}(Java Spring Boot) that guarantees session management, experiment reproducibility, and safe orchestration.
+    \item A \textbf{Python engine} that performs preprocessing, executes baseline and residual models, and evaluates results.  
+    \item A \textbf{frontend interface} (React.js) that provides interactive configuration and visual interpretation of outcomes.  
+\end{enumerate}
+
+\begin{figure}[htbp]
+ \includegraphics[width=13cm]{figures/framework/1.png}
+ \caption[System architecture of the proposed framework for fuel cell ageing analysis]{System architecture of the proposed framework for fuel cell ageing analysis}
+ \label{fig:system_architecture}
+\end{figure}
+This architecture directly implements the guiding concepts described in Chapter~\ref{chap:methodology}: automation, reproducibility, equitable comparison, interpretability, and flexibility.
+
+\section{Residual Correction Approach}
+
+The central methodological advancement of this framework is the adoption of a regression baseline and correction paradigm. This approach builds on the recognition that degradation signals in fuel cells contain both smooth prolonged dynamics and irregular temporary fluctuations. To capture these components in a structured manner, the procedure unfolds in three interconnected phases that together provide both interpretability and accuracy.
+
+The process begins with the fitting of a regression baseline. Models such as linear regression, ridge regression, polynomial regression, or classical time series techniques like ARIMA are used to estimate the underlying trajectory of deterioration, denoted as $b(t)$. This baseline captures the gradual and systematic component of the signal, ensuring that the essential structure  for a long time aging is retained. Once this baseline is established, the next phase involves extracting the residuals. These are defined as the differences between the observed signal and the estimated baseline, $\epsilon(t) = y(t) - \hat{b}(t)$, and represent the variability that remains unexplained. The residuals reflect for a short time fluctuations, stochastic influences, and local deviations from the overall trend, all of which are important for understanding the full dynamics of fuel cell performance.
+
+The final step is the modeling of these residuals. Flexible machine learning algorithms such as Support Vector Regression, Random Forests, prolonged temporary memory networks, CNN–LSTM hybrids, or Gaussian Process Regression are employed to learn the patterns present in the residual sequences. By focusing on variability rather than trend, these learners are able to represent subtle fluctuations that the baseline alone cannot capture. The ultimate predictive signal is then reconstructed by combining the baseline and the modeled residuals, expressed as
+\[
+\hat{y}(t) = \hat{b}(t) + \hat{\epsilon}(t).
+\]
+This formulation unites the interpretability of regression baselines with the accuracy of advanced learners, offering a balanced methodology that is transparent yet powerful in its predictive capacity.
+
+Embedding this residual correction procedure within the broader framework ensures that every dataset is processed consistently, every model is evaluated under identical conditions, and all results are generated in a reproducible manner. The integration of baseline fitting, residual extraction, and residual modeling not only enhances predictive performance but also guarantees that outcomes can be compared across datasets and visualized in a way that makes methodological contributions explicit.
+
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=10cm]{figures/framework/4.png}
+  \caption[Residual correction approach within the automated machine learning pipeline.]{The framework integrates baseline fitting, residual extraction, and residual modeling to provide reproducible, interpretable, and accurate predictions of fuel cell aging.}
+  \label{fig:residual_correction1}
+\end{figure}
+
+\section{Motivation and Design Goals}
+
+The motivation for building this framework arises directly from the methodological principles described in Chapter~\ref{chap:methodology}. In particular, the challenges of reproducibility, scalability, and interpretability in model benchmarking translate into a series of concrete design requirements that guided the construction of the system. Each requirement was carefully considered to ensure that the framework not only supports experimentation but also enforces scientific rigor and simplicity in the process.
+
+A first priority is the automatic processing of multivariate datasets. Since sensor data often vary in dimensionality and completeness, the framework incorporates a preprocessing pipeline capable of handling normalization, reshaping, and missing value imputation without manual intervention. This ensures that datasets with different structures can be analyzed in a consistent and comparable way. In parallel, dynamic target identification is implemented so that the system can automatically detect the most informative variables for prediction, relying on statistical properties such as variance and autocorrelation. This step reduces operator bias and guarantees that model evaluation is always based on signals with genuine predictive value.
+
+A further design goal is the inclusion of a broad spectrum of models. The framework therefore supports statistical approaches, regression baselines, ensemble methods, deep learning architectures, and hybrid techniques, making it possible to benchmark models of very different complexity under identical conditions. To ensure that comparisons across this wide range remain fair and meaningful, evaluation is standardized around established error metrics, with RMSE serving as the primary measure. The system extends this metric with normalization procedures and split wise analyses, enabling both absolute accuracy and relative improvements to be assessed across datasets of varying scale.   
+
+Equally important is the usability of results. The framework incorporates interactive visualization as a core feature, presenting outcomes in the form of RMSE heatmaps, PCA projections, and time series overlays. These tools make it possible to move from raw numbers to interpretable patterns, connecting statistical performance with human intuition. By allowing users to interact with results dynamically, the system supports rapid exploration of model behavior and comparative evaluation across different settings.
+
+Taken together, these requirements define the framework as more than just an implementation detail. It serves as the experimental backbone of this study, ensuring that every model evaluation is reproducible, every comparison is traceable, and every outcome is presented in a form that balances technical rigor with interpretability. In this way, the framework becomes a methodological contribution in its own right, embodying the design principles that drive reliable and transparent research in predictive modeling of fuel cell aging.
+
+\section{Overall System Architecture}
+The implementation utilizes a three levels architecture that allocates responsibilities among the backend, computational engine, and user interface. A Java Spring Boot server on the backend manages user sessions, processes dataset uploads, and generates configuration files that provide the parameters for each experiment. It functions as the primary center for coordinating requests and initiating analytical procedures.  
+
+The system's computing core comprises a specialized Python engine. This component is responsible for processing the uploaded datasets, executing the selected machine learning models, and determining the appropriate assessment metrics. The system ensures flexibility in model building by segregating tasks into a distinct engine, allowing for the integration of various methodological methods.  
+
+Ultimately, the front end serves as the interface through which users engage with the system. The interface enables users to configure experiments, submit datasets, and view results in real time, therefore rendering the underlying analytical processes comprehensible to non experts.  
+
+The three layers are designed to remain modular and loosely interconnected, allowing each component to evolve independently. This design decision facilitates the future integration of additional features and enables the system to function as a cohesive complete workflow, including all phases, from data ingestion to model execution and visual result presentation.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=12cm]{figures/framework/2.png}
+  \caption[Overview of the automated machine learning methodology.]{Overview of the automated machine learning methodology.}
+  \label{fig:overview_automated}
+\end{figure}
+
+
+\section{Backend Layer (Spring Boot)}
+The backend layer, developed using Java Spring Boot, is the core component of the system. It manages the flow of data and makes sure that user inputs and the machine learning engine work together. Every dataset that a user submits is saved in a specific session directory. This organization simplifies tracking the results and prevents subsequent runs from overwriting the output. This architecture guarantees both isolation and reproducibility, which are necessary for experimental work in  research driven by data. 
+
+The server side takes care of files and provides a safe set of RESTful endpoints for uploading datasets, starting experiments, and getting to logs and results. This layer of communication creates a clear separation between the frontend interface and the Python based analytical engine. This lets each part grow on its own while still being able to work with the other parts. 
+
+Another important job is managing configurations. A shared file called config.json keeps track of the experimental parameters, such as the models used, the paths to the datasets, and the ratios of train to test data. This document is a legal agreement between the Java backend and the Python engine. It lists all the parameters that affect the outcome of an experiment. Configurations not only tell the program what to do, but they also serve as an auditable record that makes sure that every analysis can be done again under the same conditions. 
+
+The primary job is to start the Python pipeline using the Java ProcessBuilder tool. This synchronous invocation allows for real time monitoring of execution and clear error capture, which makes the system more reliable. 
+
+From a methodological standpoint, these design decisions guarantee the transformation of the regression baseline and correction framework into a resilient operational pipeline. The backend carefully handles user sessions, settings, and execution triggers, making it easier to reproduce results across many datasets and models. It ensures the repeatability, clarity, and adherence to established scientific criteria for tests on fuel cell aging data.
+\section{Python Engine (Analysis Core)}
+
+At the center of the framework lies the Python based analysis engine, which operationalizes the methodological principles discussed earlier. It is implemented as a modular script, errorles\_functions.py , that unifies dataset preprocessing, regression baseline fitting, residual correction modeling, and performance evaluation into a single executable workflow. This component directly embodies the main contribution of the dissertation: the systematic benchmarking of regression baseline and correction models for predicting fuel cell aging across multiple datasets in a reproducible and transparent fashion.
+
+Before any modeling can be performed, datasets must first be transformed into a consistent structure that is ready for analysis. This preprocessing stage automates several critical tasks. Appropriate target variables, such as stack voltage trajectories, are identified using statistical heuristics that consider variance and autocorrelation, ensuring that the most informative signals are selected without requiring manual intervention. Once targets are identified, all features are normalized so that variables of different magnitudes contribute comparably to regression outcomes, preventing dominant features from skewing the analysis. Small gaps in sensor data are addressed through interpolation while preserving the temporal structure, and the datasets are finally reshaped into model compatible formats suitable for both univariate and multivariate regression experiments. The overall effect of this preprocessing pipeline is to remove irregularities from the raw data, thereby allowing models to focus on capturing underlying degradation dynamics rather than compensating for structural inconsistencies in the inputs.
+Once datasets have been standardized, the engine executes a broad family of machine learning models. These are grouped into methodological categories that reflect different strategies for capturing longer degradation trends and shorter variability. Traditional time series approaches such as ARIMA, SARIMA, and Holt–Winters provide interpretable baselines that encapsulate temporal dynamics. Regression models such as ridge, lasso, elastic net, and polynomial regression form a second family, offering flexible baselines that can adapt to linear and moderately nonlinear relationships. Each of these models is run under specified by user training and testing splits, such as the commonly used 80/20 ratio, ensuring comparability across experimental conditions. This systematic design guarantees that both baseline regressors, which are designed to capture gradual deterioration, and more adaptive learners, which address residual fluctuations, are evaluated on equal footing.
+\\\\The performance evaluation of all models is centered on the RMSE, which provides an absolute measure of predictive accuracy in the natural units of the degradation signal. RMSE quantifies how closely the predicted trajectories follow the observed data, while relative improvements are assessed through changes in RMSE when residual correction models are compared against their baselines. This dual perspective—absolute accuracy and relative gain—ensures that both direct predictive quality and the added value of correction methods are captured. 
+\begin{figure}[htbp] % let LaTeX place it well; avoids end-of-page gaps
+  \centering
+  \includegraphics[width=15cm]{figures/framework/5.png}
+  \caption[Automated preprocessing pipeline ensuring analysis-ready datasets.]%
+  {The preprocessing stage standardizes inputs through target identification,
+  normalization, missing data handling, and reshaping, ensuring comparability
+  across experiments.}
+  \label{fig:automated_preprocessing}
+\end{figure}
+
+% If (rarely) a tiny gap remains because only one more line would fit:
+\enlargethispage{\baselineskip}
+
+
+To maintain full traceability, every result produced by the engine is logged automatically. Errors and exceptions are stored in a structured log file that records model identifiers, datasets, split definitions, timestamps, and severity levels, preventing silent failures and enabling thorough debugging.
+\begin{figure}[H]
+\centering
+ \includegraphics[width=6cm]{figures/framework/7.png}
+ \caption[Performance evaluation, logging, and reproducibility pipeline.]{The engine evaluates RMSE, compares relative improvements, and records all results in structured logs to guarantee reproducibility.}
+ \label{fig:performance_evaluation}
+\end{figure}
+Model–dataset performance results are written to Comma Separated Values (CSV files that capture raw RMSE values, while normalized results are produced to facilitate fair comparisons across datasets of varying scales. By systematically recording every artifact—from error logs to model outputs—the framework ensures that each experiment can be replicated, audited, and compared without ambiguity. 
+
+
+From a research perspective, the Python engine translates the methodological concept of baseline correction into a fully operational system. It enables robust, dataset wise benchmarking across dozens of models and experimental conditions. Most importantly, it ensures that conclusions about fuel cell aging prediction are not based on isolated case studies but are instead derived from a statistically robust, reproducible, and extensible pipeline. In this way, the analysis core stands as the methodological and computational heart of the research work, bridging conceptual contribution and practical implementation.
+
+\section{Frontend Interface (React.js)}
+
+The frontend interface of the framework is implemented in React.js and styled with Tailwind CSS, while advanced visualization capabilities are provided through D3.js, Vega Lite, and Plotly. Its primary purpose is to transform raw outputs from the backend into clear, accessible, and engaging insights for both researchers and practitioners. In line with the methodological emphasis on interpretability outlined in Chapter~\ref{chap:methodology}, the frontend ensures that residual adjustment models are presented as transparent, comprehensible components of the predictive process rather than as opaque black boxes. This design decision is particularly important for highlighting how correction strategies contribute to improving the accuracy of fuel cell aging predictions.
+\\\\The user interface offers an intuitive and modular environment in which experiments can be designed and executed. Users begin by uploading one or more datasets through the interface, which are automatically directed to specific session storage to preserve traceability. Following this, the interface guides users through the configuration of experiments, allowing them to select model families or specific models, define train–test split ratios such as 80/20, and choose between running experiments on a single dataset or across multiple datasets in batch mode. Once configured, experiments are initiated directly from the frontend, which communicates with the backend through RESTful endpoints. This interaction triggers the orchestration of processes on the server side, including the execution of Python scripts that carry out preprocessing, model training, and evaluation. In this way, the frontend is not only a presentation layer but also the central point for experiment setup and execution.
+\\\\A defining contribution of the frontend lies in its ability to dynamically visualize results as they are generated. Outputs are continuously updated, enabling users to observe the progress of experiments in near real time. Among the visualization methods employed, heatmaps of RMSE values provide a comparative overview of model accuracy across datasets, making it possible to assess the improvements achieved through residual correction. Prediction overlays are another critical tool, presenting degradation signals alongside both baseline forecasts and corrected predictions, thereby offering a direct visual confirmation of the performance gains. Principal Component Analysis is also incorporated into the visualization layer to reveal patterns in multivariate input spaces, supporting a deeper understanding of how features influence predictions. Finally, boxplots with error bars demonstrate how each split compares to the others, ensuring that performance variability across different train/test partitions is made transparent and that the robustness of models can be readily evaluated.
+\\\\These visualizations extend beyond simple graphical representations. They function as analytical instruments that enhance the interpretability of model behavior and facilitate scientific comparisons of methodologies. By presenting accuracy improvements, error distributions, and feature structures in interactive and intuitive forms, the frontend ensures that results are not only statistically rigorous but also accessible to human intuition. In doing so, it directly supports the central objective of this thesis: to make predictive modeling of fuel cell aging both accurate and transparent.
+
+\section{Data Flow and Execution Pipeline}
+
+The framework is designed as a unified and systematic pipeline, ensuring that each phase of the experimental workflow is both reproducible and semantically connected to the stages before and after it. The process begins at the user interface, where datasets are uploaded through the frontend.A clear connection between the input datasets and the outputs is created by transferring these files to the backend through RESTful Application Programming Interface (API) endpoints and storing them in particular to the session directories. This organization not only secures traceability but also guarantees that each dataset is uniquely bound to its outcomes.
+
+Once the data is in place, users configure their experiments through the same interface. The configuration process allows for the selection of model families, ranging from regression baselines to ensemble methods and neural networks, alongside the definition of train/test partitions such as an 80/20 split or multiple alternative splits. Users can also choose between running single trials for individual datasets or conducting multidataset batch evaluations. All of these choices are passed to the backend through a dedicated API endpoint, which ensures that the experimental setup is faithfully communicated to the computational engine.
+\\\\The backend creates a formal setup file in the form of a config.json when it gets the parameters defined by users. This file records all essential elements of the experiment, including dataset paths, chosen models, defined split ratios, and designated output directories. In addition, it embeds metadata such as session identifiers and timestamps, which guarantees that the configuration not only serves as the blueprint for the current run but also as an auditable record for any future replication. By consolidating all parameters in one place, the system provides a robust safeguard for 
+\begin{figure}[H]
+\centering
+ \includegraphics[width=10cm]{figures/framework/22.png}
+ \caption[Automated machine learning pipeline for multidimensional sensor time series data.]{From data preprocessing and configuration management to error logging and result visualization, the pipeline ensures structured model comparison and robust traceability across all stages. Each block represents one phase of the workflow.}
+ \label{fig:ml_pipeline}
+\end{figure}
+reproducibility: identical experiments can always be rerun to yield identical results.
+\\\\The execution of the models is handled by the Python engine, which is triggered by the backend using ProcessBuilder. The engine reads the configuration file, preprocesses the datasets, and systematically applies the selected machine learning models. Each model produces baseline forecasts, residual corrections when applicable, and associated RMSE scores. The outputs are methodically stored in structured folders so that predictions, metrics, and diagnostics are never separated from their contextual identifiers.
+\\\\During execution, results are continuously logged and saved. For every dataset, model, and split, the system generates structured output files, including raw error logs capturing runtime exceptions, model–dataset result tables listing RMSE values, and normalized summaries that allow comparisons across datasets of different scales. Alongside these tabular results, diagnostic plots are also created, such as residual distributions, RMSE bar charts, and error overlays, which serve as visual complements to the numerical metrics. All of these outputs are preserved in specific dataset  directories to maintain consistency between input and output.
+\\\\The final stage of the pipeline lies at the frontend, where results are made accessible in a form suitable for interpretation. The interface polls the result directories and dynamically retrieves newly generated outputs. Visualizations are rendered with interactive libraries such as D3.js, Vega-Lite, and Plotly, transforming numerical results into clear and interpretable graphics. RMSE heatmaps summarize model performance across datasets, overlays illustrate the contrast between baseline and corrected predictions, and split/wise boxplots highlight robustness and variability in performance. This presentation layer ensures that the methodological emphasis on interpretability extends from computation to visualization, bridging the gap between statistical performance and actionable insights.
+
+
+
+\section{Result Storage, Traceability, and Logging}
+
+A fundamental requirement for robust experimentation in time–series regression is the ability to trace every artifact produced by a run back to its original inputs and configurations. To achieve this, the framework implements a session–aware storage strategy that brings together datasets, configurations, models, and outcomes in a single, auditable lineage. This design ensures that each result can be inspected in its proper context, reducing the possibility of ambiguity and allowing replication of experiments under precisely the same conditions.
+\\\\The outputs of the framework are organized in a hierarchical directory layout that mirrors the logic of the experimental workflow. At the highest level, all results are stored under a dedicated root directory. Within this space, each experimental session is assigned its own folder, and datasets processed during that session are placed inside specific dataset subdirectories. For each dataset, the results are further subdivided by train–test splits, such as 80/20 or 70/30, which in turn contain based on model subfolders. These model directories preserve predictions, residuals, and diagnostic information. File naming conventions embed essential context—such as dataset name, model type, split identifier, and execution timestamp—so that outputs remain discoverable and intelligible both for automated parsing and for human inspection.
+\\\\Beyond organizational structure, the framework ensures that all relevant artifacts are persisted. Each run stores the complete configuration and metadata used during execution, including the original \texttt{config.json}, the chosen datasets and models, the definition of splits, and the random seeds. Metadata such as software versions and precise timestamps are also recorded, providing a clear provenance trail. Alongside these configurations, the system generates and retains performance metrics and summary files. Raw results are stored in a dataset–wise results file containing RMSE values for every model and split. Normalized results are maintained separately to facilitate fair comparisons across datasets of different scales, and statistical summaries such as mean and variance across splits are included for reporting. In addition to numerical results, the framework generates a variety of diagnostic materials—prediction–truth overlays, residual traces, error distribution histograms, and correlation heatmaps—which enable detailed visual inspection of the models’ behavior.
+\\\\Equally important is the systematic capture of errors and events. Any exceptions or warnings encountered during preprocessing or model execution are logged in a structured file, ensuring that no failure is silent. Each log entry includes the relevant dataset, model, and split identifiers, together with timestamps, severity levels, and truncated stack traces for readability. This log serves both as a forensic record for debugging and as a research tool for replication studies, allowing investigators to revisit past experiments with full awareness of any anomalies that arose.
+\\\\By unifying directory organization, metric storage, diagnostic visualization, and error logging, the framework operationalizes the principles of reproducibility and fair comparison discussed in Chapter~\ref{chap:methodology}. Identical inputs always yield identical outputs, every experimental outcome can be regenerated from its recorded configuration, and comparisons between models are carried out under matched conditions across datasets and splits. In this way, the storage and logging strategy not only supports reliable experimentation but also ensures that the resulting knowledge is transparent, auditable, and ready for extension by future research.
+
+\begin{figure}[H]
+\centering
+ \includegraphics[width=7cm]{figures/framework/6.png}
+ \caption[Performance evaluation, logging, and reproducibility pipeline.]{The engine evaluates RMSE, compares relative improvements, and records all results in structured logs to guarantee reproducibility.}
+ \label{fig:performance_evaluation}
+\end{figure}
+\section{Extensibility and Scalability}
+ The framework is intended to progress alongside methodological advancements and the expansion of accessible datasets.  To accomplish this, it underscores composability across three essential dimensions: model integration, data management, and visualization. 
+\\\\ At the modeling level, all learners are preserved within a systematic registry (e.g., models/<category>/<name>.py).  The Python engine dynamically identifies and imports models outlined in the configuration file, hence separating orchestration from implementation.  Incorporating a new model necessitates merely registering the implementation, providing a minimal standardized interface (fit/predict, metadata), and specifying it in the configuration.  This streamlined procedure reduces integration friction and guarantees the seamless addition of both baseline regressors and residual learners.  
+
+ The platform also supports adaptable evaluation methodologies.  Users may choose one or multiple train/test splits, including 80/20, 70/30, or k-fold sequences.  Batch evaluation over many datasets and divisions facilitates variance analysis and statistical robustness, according with the methodological concepts outlined in Chapter~\ref{chap:methodology}.  
+
+ Extensibility also encompasses preprocessing and visualization.  Alternative imputers, normalizers, or feature transformations may be recorded as modular components.  Similarly, the visual layer can be enhanced with supplementary outputs, such as baseline correction gain curves or calibration charts, without altering the orchestration core.  
+
+The system is presently configured for basic trials, with potential for future expansion through several steps.  Stateless REST endpoints enable horizontal scaling of backends, while batched execution combined with caching reduces redundant calculations. Additionally, stored contracts, such as config.json and CSV metrics, serve as a foundation for transitioning to distributed, queue-based, or containerized execution environments.
+
+ Collectively, these design decisions guarantee that the framework is both resilient for present experiments and adaptable and scalable, establishing a sustainable basis for enduring methodological and technical advancement.
+
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=12cm]{figures/framework/8.png}
+ \caption[Extensibility and Scalability Framework Overview.]{Extensibility and Scalability Framework Overview.}
+ \label{fig:extensibility}
+\end{figure}
+
+ At the modeling level, all learners are organized into a systematic registry (e.g., models/<category>/<name>.py).  The Python engine dynamically identifies and imports models outlined in the configuration file, hence separating orchestration from implementation.  Integrating a new model necessitates merely registering the implementation, providing a minimal standardized interface (predict, metadata), and declaring it in the configuration.  This streamlined procedure reduces integration friction and guarantees the seamless addition of both baseline regressors and residual learners.  
+
+ The platform also supports adaptable evaluation methodologies.  Users may choose one or multiple train/test splits, including 80/20, 70/30, or k-fold sequences.  Batch evaluation over many datasets and divisions facilitates variance analysis and statistical robustness, according with the methodological concepts outlined in Chapter 4.  
+
+ Extensibility additionally encompasses preprocessing and visualization.  Alternative imputers, normalizers, or feature transformations may be recorded as modular components.  Similarly, the visual layer can be enhanced with supplementary outputs, such as baseline correction gain curves or calibration charts, without altering the orchestration core.  
+
+ The system is presently optimized for pilot  trials, however numerous measures facilitate future scalability.  Stateless REST endpoints facilitate horizontal backend expansion, while batched execution with caching minimizes redundant calculations. Additionally, stored contracts (e.g., config.json, CSV metrics) provide a basis for transitioning to distributed, queued, or containerized execution environments.  
+
+ Collectively, these design decisions guarantee that the framework is both resilient for present experiments and adaptable and scalable, establishing a sustainable basis for enduring methodological and technical advancement.
+\section{Technologies and Libraries Used}
+Table~\ref{tab:tech_stack} summarizes the principal technologies and their roles within the framework.  
+Selections prioritize mature ecosystems, strong community support, and interoperability between layers.
+
+This chapter has presented a coherent, layered framework that operationalizes the methodological commitments of this research  for fuel cell aging prediction under a regression baseline and correction paradigm.  
+
+The backend ensures traceability and repeatability; the Python engine does baseline estimate, residual learning, and measured evaluation; and the frontend converts outputs into interpretable, interactive demonstrations of enhancement.
+
+Together, these components constitute a research infrastructure capable of evaluating diverse models across heterogeneous time series datasets, thereby supporting fair comparison, robust statistics, and transparent diagnostics. 
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{Technologies and libraries used in the framework.}
+\label{tab:tech_stack}
+\begin{tabular}{p{2.0cm} p{4.1cm} p{6.8cm}}
+\hline
+\textbf{Layer} & \textbf{Technology} & \textbf{Purpose} \\
+\hline
+Frontend & React.js, Tailwind CSS, D3.js, Vega-Lite, Plotly &
+User interface, experiment setup, interactive visualization (RMSE heatmaps, prediction overlays, PCA plots). \\
+Backend & Java Spring Boot (REST) &
+Session handling, file upload, configuration generation, Python execution orchestration. \\
+Analysis Core & Python (pandas, NumPy, SciPy) &
+Preprocessing, feature handling, statistics, I/O. \\
+ML Libraries & scikit-learn, XGBoost, TensorFlow/Keras, \texttt{statsmodels}, \texttt{hmmlearn}, Prophet &
+Baselines and residual learners: regression, ensembles, neural networks, classical time-series models. \\
+Visualization (Python) & matplotlib, seaborn &
+Programmatic generation of diagnostic plots and summaries. \\
+System & JSON/CSV, subprocess, OS utilities &
+Reproducible experiment contracts, metrics storage, inter-process control. \\
+\hline
+\end{tabular}
+\end{table}
+The next Chapter~\ref{chap:results_discussion} (\nameref{chap:results_discussion}) reports empirical findings obtained with this framework and discusses their implications for predictive maintenance and reliability in fuel cell systems.
+\begin{figure}[H]
+ \includegraphics[width=12cm]{figures/framework/9.png}
+ \caption[Technologies and Libraries Used in the Framework]{Technologies and Libraries Used in the Framework}
+ \label{fig:tech_for_the_system}
+\end{figure}
+
+
+
+In the graph, there are three lines representing three different datasets:
+
+Actual (black line): Represents the observed or original data.
+Baseline (blue dashed line): This is likely the reference or initial model data.
+Corrected (green line): This represents the data after applying some correction or adjustment to the baseline.
+Observations on Deviation:
+The Actual line fluctuates around a value between 0.64 and 0.67, showing a series of peaks and valleys.
+The Baseline (blue dashed) line shows a similar trend but with noticeable deviations at various points from the Actual line. There are some larger gaps where the Actual data line deviates from the Baseline.
+The Corrected line (green) follows a smoother pattern that seems to be closer to the Actual data compared to the Baseline line. The corrections seem to reduce the gaps seen between the Actual and Baseline lines, suggesting that the corrections helped to bring the data closer to the real observed values.
+Key Points of Deviation:
+Around the values 248.88k and 248.91k, the Actual and Baseline lines show the largest deviations.
+The Corrected line brings the data back in closer alignment with the Actual values, especially noticeable after 248.92k.
+These deviations could indicate some errors or biases in the original data that were corrected through the model or adjustment process, as seen in the "Corrected" line.
+
+
+
+
+cheapter 8
+
+%======================================================
+% Chapter 7 — Generalization to Time-Series Data
+%======================================================
+
+
+
+\chapter{Machine Learning Framework for General Time Series Data}
+\label{chap:ml_framework_timeseries}
+
+Modern time series research requires not only well designed algorithms but also a dependable, reproducible infrastructure. Heterogeneous, high volume sequences from domains such as energy, industry, biomedicine, and finance demand workflows that are modular, consistent across datasets, and transparent in evaluation. This chapter presents a Complete framework for time series regression and forecasting that integrates Python (modeling), Spring Boot (orchestration), and React (visual analytics) into a single, traceable pipeline.
+
+\section{Motivation and Problem Framing}
+Time series datasets are multivariate, noisy, and irregular, often mixing scales and occasional gaps. Rapid preparation, adjusting a single dataset, and split policies that aren't always the same make it challenging to compare findings. Interpretable baselines capture smooth trends but underfit local transients; flexible learners capture local dynamics but can compromise explainability and cross–dataset robustness. A unified approach is therefore needed to standardize preprocessing, execute diverse models fairly, and report results in a reproducible way across datasets.
+
+\section{Framework Overview and Architecture}
+The system adopts a three layered design: a Spring Boot backend for session management and experiment control, a Python engine for preprocessing and model execution, and a React frontend for configuration and visualization. The backend materializes each run as a config.json contract and invokes the Python engine synchronously for reliable logging and error capture. The frontend provides a single interface for dataset upload, run setup, and interactive result inspection. Loose coupling preserves independent evolution of components while maintaining a consistent, complete workflow.
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=14cm]{figures/framework/24.png}
+ \caption[System architecture for general time series modeling]{System architecture for general time series modeling.}
+ \label{fig:system_architecture_ts}
+\end{figure}
+
+\section{Baseline and Residual Method}
+We break down signals into structure that lasts a long time and variability that lasts a short time. First, a regression or classical time series baseline estimates $b(t)$ (e.g., linear/ridge/polynomial or ARIMA/SARIMA/Holt–Winters), preserving global dynamics. Residuals are then computed as $\epsilon(t)=y(t)-\hat{b}(t)$. Finally, flexible learners model residual patterns: SVR, Random Forest/Gradient Boosting/XGBoost, MLP/CNN/LSTM/GRU, hybrids such as CNN–LSTM or style of transformer encoders, and Gaussian Processes. The final prediction is the superposition
+\[
+\hat{y}(t)=\hat{b}(t)+\hat{\epsilon}(t),
+\]
+combining interpretability (baseline) with accuracy (residual learner) under a single, testable formulation.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=10cm]{figures/framework/4.png}
+  \caption[Residual correction within the automated time series pipeline]{Residual correction within the automated time series pipeline.}
+  \label{fig:residual_correction_ts}
+\end{figure}
+
+\section{Data Pipeline, Reproducibility, and Evaluation}
+The pipeline begins with dataset upload and run configuration in the frontend. The backend writes a complete config.json (dataset paths, selected models, splits, seeds, output locations, timestamps) and triggers the Python engine. Preprocessing makes inputs the same by using simple statistics to find targets, scaling across different channels, filling in tiny gaps while keeping order, and turning them into sequences that are ready for models.
+
+Each selected model executes under identical split policies (e.g., 80/20 or multiple splits). Results are persisted in a structured directory layout keyed by session, dataset, split, and model. The framework prioritizes evaluation using RMSE for absolute accuracy and enhances it with normalized scores and split-wise summaries to facilitate robust data set comparisons. All runs produce overlays of truth vs.\ baseline vs.\ corrected predictions, residual diagnostics, RMSE heatmaps across datasets/models, and correlation or PCA views for feature structure.
+
+\begin{figure}[htbp]
+ \centering
+ \includegraphics[width=12cm]{figures/framework/23.png}
+ \caption[Complete pipeline for multivariate time series]{Complete pipeline for multivariate time series}
+ \label{fig:ml_pipeline_ts}
+\end{figure}
+
+\paragraph{Traceability and Logging.}
+Every artifact is tied to its inputs and parameters. The engine records raw and normalized RMSE tables, split statistics, software versions, and exactconfig.json. Errors and warnings include dataset/model/split identifiers, timestamps, severity, and compact traces to avoid silent failures and to support exact reruns and forensic debugging.
+
+
+
+\section{Visualization and Insight}
+The React frontend (Tailwind + D3/Vega-Lite/Plotly) renders live results as they are produced. RMSE heatmaps summarize cross–dataset/model performance; time–overlays reveal baseline vs.\ corrected gains; split–wise boxplots quantify robustness; and PCA/correlation views expose multivariate structure. These interactives translate metrics into interpretable evidence for model behavior and trade–offs.
+
+
+\section{Extensibility, Scalability, and Tech Stack}
+Models are registered under a simple directory schema (models/<category>/<name>.py) and imported dynamically from \texttt{config.json}, decoupling orchestration from implementation. New preprocessors, imputers, scalers, and plots can be added without altering control flow. Even though they are set up for workstation runs, stateless REST endpoints, batched execution with caching, and archived contracts make it easy to move to distributed queues or containerized workers.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{Principal technologies and roles.}
+\label{tab:tech_stack_ts}
+\begin{tabular}{p{2.0cm} p{4.1cm} p{6.8cm}}
+\hline
+\textbf{Layer} & \textbf{Technology} & \textbf{Role} \\
+\hline
+Frontend & React, Tailwind, D3/Vega-Lite/Plotly & Setup and interactive visualization (heatmaps, overlays, PCA). \\
+Backend & Spring Boot (REST) & Sessions, uploads, config generation, Python orchestration. \\
+Analysis & Python (pandas, NumPy, SciPy) & Preprocessing, statistics, I/O. \\
+ML & scikit-learn, XGBoost, TensorFlow/Keras, statsmodels, hmmlearn, Prophet & Baselines and residual learners. \\
+System & JSON/CSV, subprocess, OS utils & Reproducible contracts and metrics storage. \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=10cm]{figures/framework/8.png}
+ \caption[Composable, scalable design]{Composable, scalable design for models, data handling, and visualization.}
+ \label{fig:extensibility_ts}
+\end{figure}
+
+\noindent
+This unified, broad approach standardizes preprocessing, facilitates equitable and transparent benchmarking, and provides interpretable enhancements using a residual and baseline paradigm, thereby supporting valid findings across diverse longitudinal datasets.
+
+
+
+\chapter{Methodology}
+\label{chap:methodology}
+
+This chapter presents a systematic and reproducible approach for analyzing and predicting fuel cell aging. The workflow transforms unstructured fuel cell data into interpretable degradation forecasts through a hybrid modeling framework that integrates statistical baseline regression with residual learning. The methodological steps such as data preprocessing, outlier handling, regression, and evaluation are designed to address nonlinear voltage decay and temporary variability specific to fuel cell operation. The focus is on physically interpretable modeling choices with clear rationale, ensuring accuracy, reproducibility, and consistency across datasets.
+\section{Proposed Solution}
+
+This section presents the conceptual approach used to model fuel cell degradation within the regression and correction framework. The method treats the degradation signal as a combination of a baseline trend and a residual correction that together describe the long term and short term behaviour of the fuel cell.
+
+The baseline component represents the gradual deterioration of voltage over time and can be obtained either from a predefined simulated reference or by estimating a smooth analytical trend directly from the measured data. The residual component captures shorter variations and operational disturbances that remain after the removal of the baseline.
+
+By separating these two components, the approach preserves the physical meaning of the degradation process while allowing statistical flexibility for modeling transient effects. The final reconstruction combines both elements to produce a complete representation of the fuel cell aging trajectory:
+
+\[
+\hat{y}(t) = \hat{b}(t) + \hat{\epsilon}(t),
+\]
+
+\noindent where  
+\(\hat{y}(t)\) is the reconstructed or predicted fuel cell voltage (overall degradation signal) at time \(t\);  
+\(\hat{b}(t)\) denotes the estimated baseline component, representing the prolonged gradual degradation trend; and  
+\(\hat{\epsilon}(t)\) represents the residual component, capturing temporary fluctuations, noise, and transient effects.
+
+Figure~\ref{fig:baseline_residual_framework} illustrates a representative voltage trajectory that motivates this baseline residual decomposition.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/Methodology/5.png}
+\caption{Conceptual workflow of the baseline residual modeling framework for fuel cell degradation analysis.}
+\label{fig:baseline_residual_framework}
+\end{figure}
+
+The implementation and automation of this approach are discussed in detail in Chapter~\ref{chap:ml_framework}.
+
+\section{Data Processing}
+\label{sec:data_processing}
+This section states the preprocessing principles used before modeling and why they are required for fair and physically consistent analysis. The preprocessing technique is systematic rather than arbitrary.   The aim is to establish a dependable framework for modeling by ensuring structural validity and scale comparability across channels (e.g., voltage, current, temperature) while maintaining the physical integrity of degradation trajectories. Figure~\ref{fig:concept_workflow} situates preprocessing within the overall conceptual workflow;
+Figure~\ref{fig:preprocess_sequence} abstracts the preprocessing sequence that underlies this principle based standardization. Standardization and validation principles are used to avoid scale-driven dominance of any single channel
+ 
+
+\begin{figure}[H]
+\centering
+ \includegraphics[width=10cm]{figures/Methodology/10.png}
+ \caption[Baseline–residual modeling framework for fuel cell degradation]{Conceptual workflow of the baseline–residual modeling framework for fuel cell degradation analysis.}
+ \label{fig:concept_workflow}
+\end{figure}
+
+and to ensure learned corrections reflect electrochemical behavior rather than artifacts of range or missingness. This guards against bias and maintains the comparability of datasets entering the modeling phase.
+\begin{figure}[H]
+\centering
+ \includegraphics[width=10cm]{figures/Methodology/7.png}
+ \caption[Data preprocessing pipeline for fuel cell datasets]{Data preprocessing and preparation sequence applied to fuel cell datasets before model execution.}
+ \label{fig:preprocess_sequence}
+\end{figure}
+A key methodological consideration is baseline adaptability: when a simulated baseline (simData) exists, it serves as a fixed physical reference; otherwise, a regression-based baseline is conceptually introduced to reproduce the slow degradation trend. This dual configuration ensures consistent analytical logic across both simulated and purely experimental datasets.
+
+\section{Model Training and Validation}
+\label{sec:model_training_validation}
+The following part defines the training and validation principles used to obtain fair and reproducible performance estimates and explains why these principles were chosen.
+The evaluation design prioritizes consistency across datasets and model families. A fixed train/test split principle with optional cross-validation balances temporal representativeness and variance control; this avoids optimistic estimates while keeping comparisons fair. All models are evaluated under identical preprocessing and scaling assumptions so that differences in outcomes reflect modeling choices rather than data handling.
+
+\begin{figure}[H]
+\centering
+ \includegraphics[width=14cm]{figures/Methodology/8.png}
+ \caption[Illustrative modeling/evaluation context]{Illustrative context showing the relation between observed signals and the modeling/evaluation pipeline, emphasizing prolonged trends and temporary variability.}
+ \label{fig:train_val_example}
+\end{figure}
+
+The consistent evaluation logic ensures that performance results are comparable across datasets and model types, reducing user bias and supporting reliable ranking of methods.
+
+\section{Evaluation Metrics}
+\label{sec:evaluation_metrics}
+This section specifies the criteria used to quantify accuracy and robustness and clarifies why these metrics are appropriate for fuel cell aging.
+Evaluation is based on quantitative error metrics and comparative measures. Root Mean Square Error (RMSE) assesses reconstruction fidelity between measured and reconstructed degradation signals; improvement relative to the baseline is expressed as \(\Delta\)RMSE. For multiple datasets, normalization is used to enable comparison regardless of signal magnitude or duration. Dispersion statistics (e.g., standard deviation) summarize robustness across operating regimes. These choices directly reflect the objective of reproducing physically recorded voltage while controlling for dataset heterogeneity.
+
+
+
+
+The methodology proceeds as follows: principled preprocessing to preserve physical integrity and comparability; baseline design to capture extended period degradation; residual learning to correct shorter deviations; and evaluation criteria to quantify fidelity and robustness.Figure~\ref{fig:automated_framework} provides an overview schematic of how these stages coincide when executed at scale. The detailed system level orchestration, including execution control, logging, and storage, is discussed in Chapter~\ref{chap:ml_framework}, where the practical realization for large continuous fuel cell datasets is presented.
+\begin{figure}[H]
+\centering
+ \includegraphics[width=14cm]{figures/Methodology/11.png}
+ \caption[Automated framework context for applying the methodology]{Automated framework context showing how the methodological stages are organized when executed at scale. This illustration summarizes the complete workflow described in this chapter.}
+ \label{fig:automated_framework}
+\end{figure}
+The overall workflow was designed as an automated sequence to ensure that each methodological step could be reproduced consistently across multiple datasets. Automation in this context does not refer to technical implementation but to the logical dependency between stages, where preprocessing prepares data for modeling, modeling generates baseline and residual outputs, and evaluation quantifies their combined accuracy. This structured workflow was chosen to minimize user bias, enforce consistency, and ensure that identical analytical rules are applied to every dataset. Such design strengthens the scientific reliability of results and enables objective comparison of different modeling approaches.
