@@ -426,3 +426,190 @@ The methodology proceeds as follows: principled preprocessing to preserve physic
  \label{fig:automated_framework}
 \end{figure}
 The overall workflow was designed as an automated sequence to ensure that each methodological step could be reproduced consistently across multiple datasets. Automation in this context does not refer to technical implementation but to the logical dependency between stages, where preprocessing prepares data for modeling, modeling generates baseline and residual outputs, and evaluation quantifies their combined accuracy. This structured workflow was chosen to minimize user bias, enforce consistency, and ensure that identical analytical rules are applied to every dataset. Such design strengthens the scientific reliability of results and enables objective comparison of different modeling approaches.
+
+
+
+\chapter{Machine Learning Framework for General Time Series Data}
+\label{chap:ml_framework_timeseries}
+
+This chapter presents the comprehensive analytical framework that extends the regression and correction system developed for fuel cell aging to all forms of time series data. It combines the scientific principles of trend–residual decomposition, standardized data preparation, and automated workflow execution into a single architecture that can analyze diverse temporal datasets in a consistent and reproducible manner. The same theoretical logic and practical orchestration used in the domain of electrochemical degradation are retained but adapted for applications such as environmental monitoring, industrial sensors, biomedical sequences, and financial records.
+
+\section{Concept and Objective}
+
+This section introduces the motivation for generalizing the framework. Time series analysis in modern research often deals with extensive datasets that exhibit irregular sampling, overlapping timescales, and mixed signal behavior. A common challenge across domains is to capture both the slow structural evolution and the rapid local variations without losing interpretability. The framework presented here provides a unified structure that addresses this challenge by combining a regression baseline for structural trends with a residual learner for adaptive correction. 
+
+Automation remains essential because large temporal datasets require reproducible, objective, and nutral processing. A fully controlled pipeline ensures that every dataset follows identical analytical treatment, eliminating human error and making comparisons among models scientifically valid.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=13cm]{figures/framework/24.png}
+\caption{Architecture of the generalized machine learning framework for time series data. The orchestrator, computational engine, and visualization interface form an integrated environment.}
+\label{fig:framework_general}
+\end{figure}
+
+\section{Data Representation and Standardization}
+
+This section explains how any time series dataset is represented, validated, and prepared for modeling. The framework accepts data as sequences of observations indexed by time. Each dataset may contain multiple variables that correspond to different sensors, indicators, or observed quantities. The preparation procedure follows a systematic order to maintain scientific integrity and comparability.
+
+ All timestamps are verified for strict temporal order. Duplicate or disordered entries are corrected or averaged to maintain causal consistency, a requirement for any predictive model that depends on sequential context.
+
+ Short discontinuities are interpolated using temporally aware techniques, while larger breaks are flagged to prevent artificial smoothing. This preserves natural dynamics while removing sampling artifacts.
+
+ Measurement spikes or abrupt jumps are identified using robust deviation detection and masked rather than removed. This preserves meaningful transients that may carry diagnostic information.
+
+ Each variable is scaled to a comparable numeric range using statistics derived from the training partition. The same parameters are applied to the test partition to prevent information leakage.
+The series is reshaped into overlapping temporal windows suitable for both statistical regressors and neural architectures. Window sizes and strides are defined in configuration files and stored with the results for reproducibility.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=14cm]{figures/framework/5.png}
+\caption{Automated data preparation process for general time series. Each operation ensures that datasets become analysis-ready while maintaining physical meaning.}
+\label{fig:data_preparation_ts}
+\end{figure}
+
+Each step in this procedure is grounded in scientific reasoning. Chronological validation secures causality, gap management avoids discontinuities, outlier control prevents distortion of trends, normalization ensures fair model behavior, and windowing makes the data compatible with diverse learning algorithms. Together these operations convert raw temporal records into structured analytical material.
+
+\section{Regression and Residual Modeling Principle}
+
+This section presents the mathematical foundation and its role in general time series prediction. Every time series $y(t)$ is modeled as the combination of a structural baseline $\hat{b}(t)$ and a residual correction $\hat{\varepsilon}(t)$:
+
+\[
+\hat{y}(t) = \hat{b}(t) + \hat{\varepsilon}(t)
+\]
+
+The baseline represents the prolonged or slowly varying trend, while the residual captures transient, nonlinear, or stochastic behavior. This separation follows the same physical and statistical logic as in the fuel cell study but applies universally to any process governed by multiple temporal scales.
+
+ The baseline can be obtained through simple, interpretable regressors such as linear, ridge, polynomial, or exponential models, or through conventional time series models like autoregressive or smoothing approaches when periodic components exist. The purpose is to capture the systematic and explainable part of the signal.
+
+Once the baseline is defined, the residual $r(t)=y(t)-\hat{b}(t)$ is modeled by flexible learners that adapt to complex fluctuations. These include ensemble methods such as random forest or gradient boosting, kernel-based methods like support vector regression, and deep neural architectures such as convolutional or recurrent networks. Each residual model refines the prediction locally without overriding the physical meaning encoded in the baseline.
+
+At inference time, baseline and residual predictions are recombined to produce the final forecast $\hat{y}(t)$. This composition balances interpretability and precision, enabling users to distinguish longer processes from shorter dynamics.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{figures/framework/4.png}
+\caption{Regression and residual modeling applied to generic time series. The baseline captures slow evolution while the residual corrects fast variations.}
+\label{fig:baseline_residual_general}
+\end{figure}
+
+This formulation is domain independent. In environmental monitoring it may separate climatic trends from weather fluctuations, in finance it distinguishes market movement from daily volatility, and in medical monitoring it isolates patient baselines from transient physiological responses. 
+
+\section{Automated Execution and Evaluation}
+
+This section details the orchestration logic that executes the full analytical cycle. Automation ensures that each stage—data preparation, modeling, evaluation, and visualization—is executed identically for all datasets and models.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=12cm]{figures/framework/23.png}
+\caption{Automated execution pipeline for general time series analysis. Each stage is triggered through a centralized configuration to ensure reproducibility.}
+\label{fig:automation_general}
+\end{figure}
+
+Each experiment is defined by a single configuration file specifying dataset paths, chosen models, parameter settings, and train–test ratios. This file acts as the complete description of an experiment, ensuring that any result can be reproduced precisely.
+
+ The computational engine reads the configuration, performs preprocessing, trains models, evaluates predictions, and stores outputs in structured directories. Consistent function naming and modular code make the process transparent.
+
+ Root Mean Square Error (RMSE) serves as the principal quantitative measure of prediction fidelity. Normalized RMSE, mean absolute error, and variance of residuals are also computed to assess stability. All metrics are stored alongside configuration parameters for traceability.
+
+ Every run generates a log file that records datasets, models, and outcomes. Error entries are captured with timestamps to simplify debugging. The structure ensures that two identical configurations yield identical results, which is essential for scientific verification.
+
+Automation is not merely a convenience but a methodological guarantee. It standardizes analytical practice, reduces subjective bias, and provides a verifiable trail of computational evidence that underpins reproducible research.
+
+\section{Visualization and Analytical Insight}
+
+This section explains how results are visualized and interpreted. Visualization transforms numerical output into interpretable patterns that assist understanding.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=12cm]{figures/framework/2.png}
+\caption{Visualization and interpretation layer. The interface converts numerical results into visual insights for model comparison and temporal interpretation.}
+\label{fig:visualization_general}
+\end{figure}
+
+Interactive plots display predicted and observed sequences, showing how the residual learner improves fidelity while retaining the baseline structure. Heatmaps summarize RMSE values across datasets and models, boxplots display variation across cross-validation splits, and correlation matrices highlight dependencies among variables. These representations reveal which model performs best, where errors concentrate, and how the residual correction affects temporal coherence.
+
+The visualization component is universal: for climate data it may show temperature predictions versus actual readings; for financial data it can display predicted versus observed indices; for biomedical data it presents reconstructed physiological signals. In all cases the same visual logic applies.
+
+\section{Extensibility}
+
+This section explains how the framework remains open for growth and why this modular design strengthens scientific research.
+
+The system organizes models into categories such as regression, ensemble, recurrent, or probabilistic. Each model adheres to a common interface so that new algorithms can be added without changing the overall workflow. Preprocessing modules can be replaced or extended through configuration rather than code modification.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{figures/framework/8.png}
+\caption{Modular structure enabling scalability and extension. New models or preprocessing functions can be registered without altering the workflow logic.}
+\label{fig:extensibility_general}
+\end{figure}
+
+This modularity provides two advantages. First, it encourages comparative experimentation because all models operate under identical preprocessing and evaluation conditions. Second, it ensures the longevity of the framework, allowing integration of emerging algorithms such as transformers or dissemination architectures without loss of reproducibility.
+
+The rationale behind this design mirrors the scientific logic of the thesis. Consistency in data handling ensures fairness among models, while modular expansion promotes innovation. Thus, the framework embodies both stability and adaptability—two essential qualities for sustained progress in time series research.
+
+
+
+The generalized machine learning framework extends the analytical and computational philosophy of this thesis beyond the specific case of fuel cell aging. It integrates regression for interpretability, residual learning for adaptability, and automation for reproducibility into a single coherent system. Every component—from data preparation to evaluation and visualization—operates under a unified set of rules defined by transparent configuration.
+
+\[
+\hat{y}(t) = \hat{b}(t) + \hat{\varepsilon}(t)
+\]
+
+remains the central relation governing the framework. Through this equation the system separates the slow structural component from the rapid fluctuating one, enabling meaningful interpretation across any domain. The result is a versatile infrastructure that transforms the regression and correction strategy into a general scientific tool for time series modeling. It supports largeer scale experiments, ensures logical coherence across analytical steps, and strengthens the reproducibility and transparency that modern data oriented science demands.
+
+
+\chapter{Introduction}
+\label{sec:intro}
+
+
+
+The urgent necessity to enhance energy security, reduce dependence on fossil fuels, and alleviate climate change is driving a significant revolution in the global energy landscape \cite{IEA2019Hydrogen,IEA2022GlobalHydrogen,Staffell2019HydrogenReview,HydrogenCouncil2020Report,IRENA2022Hydrogen}.   In this context, hydrogen has emerged as a versatile energy source capable of decarbonising various industries, including stationary power generation, industrial processes, and transportation \cite{IEA2022GlobalHydrogen,HydrogenCouncil2020Report}. Its high specific energy and accessibility, along with its ability to interact with other renewable energy sources to stabilize intermittent solar and wind power and offer prospective energy storage, make it very appealing\cite{Staffell2019HydrogenReview,IEA2022GlobalHydrogen,Levi2019HydrogenStorage}.
+
+Fuel cells have attracted significant interest as a hydrogen conversion technology due to their high efficiency, scalability, and capacity to manage diverse loads \cite{Steele2001Nature,Barbir2013PEMFCReview}. Fuel cells exist in several types, such as phosphoric acid fuel cells (PAFCs), solid oxide fuel cells (SOFCs), and proton exchange membrane fuel cells (PEMFCs). Each format is optimal for a specific objective. For instance, PEMFCs are commonly employed in transportation and portable devices owing to their compact dimensions and swift initiation. Nonetheless, due to their capability to function at elevated temperatures and utilise diverse fuels, SOFCs are better adapted for stationary power generation \cite{IEA2019Hydrogen,HydrogenCouncil2020Report,IEA2022GlobalHydrogen}.
+
+Despite their promise, fuel cells face a significant barrier to widespread adoption: performance degradation over time, commonly referred to as aging \cite{Wang2011ReviewDurability,Borup2007CR,Song2019Review}. Ageing is characterised by a progressive decline in voltage, diminished power output, and ultimately a limited operational lifespan. Although the degradation mechanisms differ among fuel cell types, they always encompass catalyst degradation, membrane or electrolyte deterioration, electrode flooding or drying, and structural damage to supporting layers\cite{Wang2011ReviewDurability,Song2019Review,Li2018MembraneReview}. Operational stressors, including start and stop cycles, load transients, and elevated temperatures, exacerbate these processes \cite{Borup2007CR,Dubau2014WIRES}. The outcome is reduced technical performance, elevated maintenance expenses, and decreased competitiveness relative to conventional technologies\cite{Humphreys2020Prognostics,HydrogenCouncil2020Report}.
+
+Accurate prognostic models for fuel cell degradation are therefore of strategic importance \cite{Humphreys2020Prognostics,Willard2022NRP,Karpatne2019TGDS}. By anticipating performance decline, operators can schedule maintenance proactively, minimise unexpected failures, and extend system life. For manufacturers, predictive models inform material selection, stack design, and quality control \cite{Zhang2019BoostingPEM,Severson2019BatteryPrognostics}. In emerging applications such as digital twins and predictive maintenance frameworks, aging models play a central role in real time optimisation and anomaly detection \cite{Willard2022NRP,Rasouli2022DigitalTwin}.
+
+Two principal concepts prevail in current methodologies: models based on physics and models based on data. Based on physics  models, grounded in electrochemical theory, offer mechanistic insights and interpretability but require extensive calibration and often struggle to generalise to practical conditions \cite{Eikerling2014Degradation,Borup2007CR,Song2019Review}. Data-driven models, by contrast, leverage machine learning (ML) and deep learning (DL) to capture nonlinear patterns in multidimensional sensor data. While powerful and flexible, they often lack interpretability, are sensitive to data quality, and may not extrapolate reliably \cite{Willard2022NRP,Karpatne2019TGDS,Goodfellow2016DL}.
+
+Recognising these limitations, the research community has increasingly turned toward hybrid or ''grey-box'' approaches that combine the interpretability of based on physics models with the flexibility of data-driven techniques \cite{Karpatne2019TGDS,Willard2022NRP,Raissi2019PINN}. A promising strategy is the baseline and correction framework, in which a baseline model derived from physics, empirical trends, or robust statistical fits describes the dominant degradation trajectory, while a secondary correction model learns to predict deviations from that baseline \cite{Raissi2019PINN,Willard2022NRP,Severson2019BatteryPrognostics}.  
+
+Such strategies have already shown success in adjacent domains. In lithium-ion battery prognostics, empirical aging curves combined with residual learners improved prediction accuracy under variable load profiles \cite{Severson2019BatteryPrognostics,Attia2020BatteryScience}. In wind turbine monitoring, the integration of scientific baselines with statistical anomaly identification improved fault detection sensitivity.\cite{Zhang2021WindHybrid,Jiang2022WindTurbinePHM}. Extending these frameworks to fuel cells offers potential benefits, including enhanced predictive accuracy, increased robustness to noise, and deeper diagnostic insights into both immediate fluctuations and long run degradation patterns. \cite{Zhang2019BoostingPEM,Humphreys2020Prognostics}.
+
+Despite this potential, the application of baseline and correction modelling to fuel cell aging remains underexplored \cite{Humphreys2020Prognostics,Shah2021IJHE,Song2019Review}. Existing studies often rely on narrow datasets, limited model selections, or inconsistent evaluation protocols \cite{Humphreys2020Prognostics,Attia2020BatteryScience}. Performance metrics, preprocessing steps, and validation strategies vary widely, making it difficult to compare results across studies \cite{Karpatne2019TGDS,Willard2022NRP}. Moreover, reproducibility is hampered by incomplete documentation, proprietary datasets, or ad hoc implementation details \cite{Raissi2019PINN,IEA2022GlobalHydrogen}.  
+
+Addressing this gap requires more than simply applying baseline and correction models to individual datasets. It calls for a systematic, reproducible framework that ensures fair comparison between models, transparent reporting of preprocessing and evaluation methods, and the flexibility to incorporate diverse datasets and regression families\cite{Willard2022NRP,Karpatne2019TGDS,Severson2019BatteryPrognostics}. Such a framework would advance academic research while also equipping industry stakeholders with reliable tools for predictive maintenance, operational optimisation, and lifetime extension strategies\cite{Rasouli2022DigitalTwin,Nguyen2021EnergiesPEMFCdurability,HydrogenCouncil2020Report}.
+\noindent\\
+To meet this need, this work implements and systematically evaluates a modular regression baseline and correction framework for fuel cell aging prediction. The framework decomposes the degradation signal into an extended baseline trend, modeled using interpretable regression techniques, and a residual component, captured by flexible correction learners. This study seeks to amalgamate baseline and residual modeling phases to enhance interpretability and precision, prioritizing a balance between scientific accuracy and technical feasibility. The system is designed to be fully automated and reproducible, supporting fair comparison across heterogeneous, extensive datasets. Extensive evaluation across multiple regression families and diverse fuel cell datasets demonstrates the effectiveness of residual correction in improving predictive performance, thereby addressing a critical research gap in fuel cell prognostics. [A brief overview of the time-series dataset processing platform is currently missing. Additionally, it would be beneficial to provide a concise introduction to all subsequent sections in a few sentences, which will help guide readers and inform them about the content to expect in the following parts.
+]
+
+
+
+\chapter{Introduction}
+\label{sec:intro}
+
+
+
+The urgent necessity to enhance energy security, reduce dependence on fossil fuels, and alleviate climate change is driving a significant revolution in the global energy landscape \cite{IEA2019Hydrogen,IEA2022GlobalHydrogen,Staffell2019HydrogenReview,HydrogenCouncil2020Report,IRENA2022Hydrogen}.   In this context, hydrogen has emerged as a versatile energy source capable of decarbonising various industries, including stationary power generation, industrial processes, and transportation \cite{IEA2022GlobalHydrogen,HydrogenCouncil2020Report}. Its high specific energy and accessibility, along with its ability to interact with other renewable energy sources to stabilize intermittent solar and wind power and offer prospective energy storage, make it very appealing\cite{Staffell2019HydrogenReview,IEA2022GlobalHydrogen,Levi2019HydrogenStorage}.
+
+Fuel cells have attracted significant interest as a hydrogen conversion technology due to their high efficiency, scalability, and capacity to manage diverse loads \cite{Steele2001Nature,Barbir2013PEMFCReview}. Fuel cells exist in several types, such as phosphoric acid fuel cells (PAFCs), solid oxide fuel cells (SOFCs), and proton exchange membrane fuel cells (PEMFCs). Each format is optimal for a specific objective. For instance, PEMFCs are commonly employed in transportation and portable devices owing to their compact dimensions and swift initiation. Nonetheless, due to their capability to function at elevated temperatures and utilise diverse fuels, SOFCs are better adapted for stationary power generation \cite{IEA2019Hydrogen,HydrogenCouncil2020Report,IEA2022GlobalHydrogen}.
+
+Despite their promise, fuel cells face a significant barrier to widespread adoption: performance degradation over time, commonly referred to as aging \cite{Wang2011ReviewDurability,Borup2007CR,Song2019Review}. Ageing is characterised by a progressive decline in voltage, diminished power output, and ultimately a limited operational lifespan. Although the degradation mechanisms differ among fuel cell types, they always encompass catalyst degradation, membrane or electrolyte deterioration, electrode flooding or drying, and structural damage to supporting layers\cite{Wang2011ReviewDurability,Song2019Review,Li2018MembraneReview}. Operational stressors, including start and stop cycles, load transients, and elevated temperatures, exacerbate these processes \cite{Borup2007CR,Dubau2014WIRES}. The outcome is reduced technical performance, elevated maintenance expenses, and decreased competitiveness relative to conventional technologies\cite{Humphreys2020Prognostics,HydrogenCouncil2020Report}.
+
+Accurate prognostic models for fuel cell degradation are therefore of strategic importance \cite{Humphreys2020Prognostics,Willard2022NRP,Karpatne2019TGDS}. By anticipating performance decline, operators can schedule maintenance proactively, minimise unexpected failures, and extend system life. For manufacturers, predictive models inform material selection, stack design, and quality control \cite{Zhang2019BoostingPEM,Severson2019BatteryPrognostics}. In emerging applications such as digital twins and predictive maintenance frameworks, aging models play a central role in real time optimisation and anomaly detection \cite{Willard2022NRP,Rasouli2022DigitalTwin}.
+
+Two principal concepts prevail in current methodologies: models based on physics and models based on data. Based on physics  models, grounded in electrochemical theory, offer mechanistic insights and interpretability but require extensive calibration and often struggle to generalise to practical conditions \cite{Eikerling2014Degradation,Borup2007CR,Song2019Review}. Data-driven models, by contrast, leverage machine learning (ML) and deep learning (DL) to capture nonlinear patterns in multidimensional sensor data. While powerful and flexible, they often lack interpretability, are sensitive to data quality, and may not extrapolate reliably \cite{Willard2022NRP,Karpatne2019TGDS,Goodfellow2016DL}.
+
+Recognising these limitations, the research community has increasingly turned toward hybrid or ''grey-box'' approaches that combine the interpretability of based on physics models with the flexibility of data-driven techniques \cite{Karpatne2019TGDS,Willard2022NRP,Raissi2019PINN}. A promising strategy is the baseline and correction framework, in which a baseline model derived from physics, empirical trends, or robust statistical fits describes the dominant degradation trajectory, while a secondary correction model learns to predict deviations from that baseline \cite{Raissi2019PINN,Willard2022NRP,Severson2019BatteryPrognostics}.  
+
+Such strategies have already shown success in adjacent domains. In lithium-ion battery prognostics, empirical aging curves combined with residual learners improved prediction accuracy under variable load profiles \cite{Severson2019BatteryPrognostics,Attia2020BatteryScience}. In wind turbine monitoring, the integration of scientific baselines with statistical anomaly identification improved fault detection sensitivity.\cite{Zhang2021WindHybrid,Jiang2022WindTurbinePHM}. Extending these frameworks to fuel cells offers potential benefits, including enhanced predictive accuracy, increased robustness to noise, and deeper diagnostic insights into both immediate fluctuations and long run degradation patterns. \cite{Zhang2019BoostingPEM,Humphreys2020Prognostics}.
+
+Despite this potential, the application of baseline and correction modelling to fuel cell aging remains underexplored \cite{Humphreys2020Prognostics,Shah2021IJHE,Song2019Review}. Existing studies often rely on narrow datasets, limited model selections, or inconsistent evaluation protocols \cite{Humphreys2020Prognostics,Attia2020BatteryScience}. Performance metrics, preprocessing steps, and validation strategies vary widely, making it difficult to compare results across studies \cite{Karpatne2019TGDS,Willard2022NRP}. Moreover, reproducibility is hampered by incomplete documentation, proprietary datasets, or ad hoc implementation details \cite{Raissi2019PINN,IEA2022GlobalHydrogen}.  
+
+Addressing this gap requires more than simply applying baseline and correction models to individual datasets. It calls for a systematic, reproducible framework that ensures fair comparison between models, transparent reporting of preprocessing and evaluation methods, and the flexibility to incorporate diverse datasets and regression families\cite{Willard2022NRP,Karpatne2019TGDS,Severson2019BatteryPrognostics}. Such a framework would advance academic research while also equipping industry stakeholders with reliable tools for predictive maintenance, operational optimisation, and lifetime extension strategies\cite{Rasouli2022DigitalTwin,Nguyen2021EnergiesPEMFCdurability,HydrogenCouncil2020Report}.
+\noindent\\
+To meet this need, this work implements and systematically evaluates a modular regression baseline and correction framework for fuel cell aging prediction. The framework decomposes the degradation signal into an extended baseline trend, modeled using interpretable regression techniques, and a residual component, captured by flexible correction learners. This study seeks to amalgamate baseline and residual modeling phases to enhance interpretability and precision, prioritizing a balance between scientific accuracy and technical feasibility. The system is designed to be fully automated and reproducible, supporting fair comparison across heterogeneous, extensive datasets. Extensive evaluation across multiple regression families and diverse fuel cell datasets demonstrates the effectiveness of residual correction in improving predictive performance, thereby addressing a critical research gap in fuel cell prognostics. [A brief overview of the time-series dataset processing platform is currently missing. Additionally, it would be beneficial to provide a concise introduction to all subsequent sections in a few sentences, which will help guide readers and inform them about the content to expect in the following parts.
+]
+
+
